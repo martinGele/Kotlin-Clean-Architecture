@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import com.martin.kotlinclean.model.Animal
 import com.martin.kotlinclean.model.AnimalApiService
 import com.martin.kotlinclean.model.ApiKey
+import com.martin.kotlinclean.util.SharedPreferencesHelper
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.observers.DisposableSingleObserver
@@ -17,14 +18,26 @@ class ListViewModel(application: Application) : AndroidViewModel(application) {
     val loadError by lazy { MutableLiveData<Boolean>() }
     val loading by lazy { MutableLiveData<Boolean>() }
 
+    private val prefs = SharedPreferencesHelper(getApplication())
     private val disposable = CompositeDisposable()
 
     private val apiService = AnimalApiService()
 
+    private var invlaidApiKey = false
+
 
     fun refresh() {
+
+        invlaidApiKey = false
         loading.value = true
-        getKey()
+        val key = prefs.getApiKey()
+        if (key.isNullOrBlank()) {
+            getKey()
+        } else {
+
+            getAnimals(key)
+        }
+
     }
 
 
@@ -43,11 +56,13 @@ class ListViewModel(application: Application) : AndroidViewModel(application) {
                             loading.value = false
 
                         } else {
+                            prefs.saveApiKey(key.key)
                             getAnimals(key.key)
                         }
                     }
 
                     override fun onError(e: Throwable) {
+
                         e.printStackTrace()
                         loading.value = false
                         loadError.value = true
@@ -56,6 +71,12 @@ class ListViewModel(application: Application) : AndroidViewModel(application) {
                 })
         )
 
+    }
+
+     fun hardRefresh(){
+
+        loading.value= true
+        getKey()
     }
 
     private fun getAnimals(key: String) {
@@ -74,10 +95,16 @@ class ListViewModel(application: Application) : AndroidViewModel(application) {
                     }
 
                     override fun onError(e: Throwable) {
-                        e.printStackTrace()
-                        loading.value = false
-                        loadError.value = true
-                        animals.value = null
+                        if (!invlaidApiKey) {
+
+                            invlaidApiKey = true
+                            getKey()
+                        } else {
+                            e.printStackTrace()
+                            loading.value = false
+                            loadError.value = true
+                            animals.value = null
+                        }
                     }
 
 

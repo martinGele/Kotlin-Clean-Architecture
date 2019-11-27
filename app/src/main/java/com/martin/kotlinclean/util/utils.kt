@@ -11,7 +11,7 @@ import com.martin.kotlinclean.R
 fun getProgressDrawable(contex: Context): CircularProgressDrawable {
 
     return CircularProgressDrawable(contex).apply {
-        strokeWidth = 10f
+        strokeWidth = 6f
         centerRadius = 50f
         start()
     }
