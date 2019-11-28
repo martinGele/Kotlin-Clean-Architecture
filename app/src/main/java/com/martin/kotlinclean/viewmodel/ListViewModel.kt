@@ -3,6 +3,10 @@ package com.martin.kotlinclean.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
+import com.martin.kotlinclean.di.AppModule
+import com.martin.kotlinclean.di.CONTEXT_APP
+import com.martin.kotlinclean.di.DaggerViewModelComponent
+import com.martin.kotlinclean.di.TypeOfContext
 import com.martin.kotlinclean.model.Animal
 import com.martin.kotlinclean.model.AnimalApiService
 import com.martin.kotlinclean.model.ApiKey
@@ -11,6 +15,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.observers.DisposableSingleObserver
 import io.reactivex.schedulers.Schedulers
+import javax.inject.Inject
 
 class ListViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -18,13 +23,19 @@ class ListViewModel(application: Application) : AndroidViewModel(application) {
     val loadError by lazy { MutableLiveData<Boolean>() }
     val loading by lazy { MutableLiveData<Boolean>() }
 
-    private val prefs = SharedPreferencesHelper(getApplication())
+
     private val disposable = CompositeDisposable()
 
-    private val apiService = AnimalApiService()
-
+    @Inject
+    lateinit var apiService: AnimalApiService
+    @Inject
+    @field: TypeOfContext(CONTEXT_APP)
+    lateinit var prefs: SharedPreferencesHelper
     private var invlaidApiKey = false
 
+    init {
+        DaggerViewModelComponent.builder().appModule(AppModule(getApplication())).build().inject(this)
+    }
 
     fun refresh() {
 
@@ -73,9 +84,9 @@ class ListViewModel(application: Application) : AndroidViewModel(application) {
 
     }
 
-     fun hardRefresh(){
+    fun hardRefresh() {
 
-        loading.value= true
+        loading.value = true
         getKey()
     }
 

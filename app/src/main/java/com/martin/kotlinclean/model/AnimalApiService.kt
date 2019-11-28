@@ -1,21 +1,22 @@
 package com.martin.kotlinclean.model
 
+import com.martin.kotlinclean.di.DaggerApiComponent
 import io.reactivex.Single
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
+import javax.inject.Inject
 
 class AnimalApiService {
 
-    private val URL: String = "https://us-central1-apis-4674e.cloudfunctions.net/"
 
-    private val api :AnimalApi = Retrofit.Builder()
-        .baseUrl(URL)
-        .addConverterFactory(GsonConverterFactory.create())
-        .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-        .build()
-        .create(AnimalApi::class.java)
 
+    @Inject
+    lateinit var api:AnimalApi
+
+    init {
+        DaggerApiComponent.create().inject(this)
+    }
 
     fun getApiKey(): Single<ApiKey> {
 
